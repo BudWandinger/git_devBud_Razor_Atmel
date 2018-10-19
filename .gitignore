@@ -1,6 +1,8 @@
-*
+/*
 
 !.gitignore
-!*.c
-!*.h
-!*.eww
+!README.md
+
+!*/.c
+!*/.h
+!*/.eww

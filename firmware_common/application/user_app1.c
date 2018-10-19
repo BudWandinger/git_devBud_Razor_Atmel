@@ -222,7 +222,7 @@ static void UserApp1SM_Idle(void)
           LedOff(LCD_BLUE);
           break;
           
-      } /* end switch mega town */
+      } /* end switch */
     }
     else
     {

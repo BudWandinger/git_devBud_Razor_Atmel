@@ -87,20 +87,15 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
-  /* Initialize all discrete LEDs to OFF */
+
   LedOff(WHITE);
   LedOff(PURPLE);
   LedOff(BLUE);
   LedOff(CYAN);
   LedOff(GREEN);
-  LedOff(YELLOW);
+  LedOn(YELLOW);
   LedOff(ORANGE);
   LedOff(RED);
-  
-  /* Initialize back light to WHITE) */
-  LedOn(LCD_RED);
-  LedOn(LCD_GREEN);
-  LedOn(LCD_BLUE);
         
   /* If good initialization, set state to Idle */
   if( 1 )
@@ -150,99 +145,42 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-  static u16 u16BlinkCounter = 0;
-  static u8 u8BinaryCounter = 0;
-  static u8 u8ColorIndex = 0;
+  static bool bYellowBlink = FALSE;
   
-  u16BlinkCounter++;
-  if(u16BlinkCounter == COUNTER_PERIOD_MS)
+  /* if button 0 is pressed, turn on WHITE LED */
+  if( IsButtonPressed(BUTTON0) )
   {
-    u16BlinkCounter = 0;
+    LedOn(WHITE);
+  }
+  else
+  {
+    LedOff(WHITE);
+  }
+  
+  /* toggle YELLOW LED when button 2 is pressed */
+  if( WasButtonPressed(BUTTON1) )
+  {
+    ButtonAcknowledge(BUTTON1);
     
-    if(u8BinaryCounter == (u16)(1<<COUNTER_BITS))
+    if(bYellowBlink)
     {
-      u8BinaryCounter = 0;
-      
-      if(u8ColorIndex == 6)
-      {
-        u8ColorIndex = 0;
-      }
-      else
-      {
-        u8ColorIndex++;
-      }
-      
-      switch(u8ColorIndex)
-      {
-        case 0: /* white */
-          LedOn(LCD_RED);
-          LedOn(LCD_GREEN);
-          LedOn(LCD_BLUE);
-          break;
-        
-        case 1: /* purple*/
-          LedOn(LCD_RED);
-          LedOff(LCD_GREEN);
-          LedOn(LCD_BLUE);
-          break;
-          
-        case 2: /* blue */
-          LedOff(LCD_RED);
-          LedOff(LCD_GREEN);
-          LedOn(LCD_BLUE);
-          break;
-          
-        case 3: /* cyan */
-          LedOff(LCD_RED);
-          LedOn(LCD_GREEN);
-          LedOn(LCD_BLUE);
-          break;
-          
-        case 4: /* green */
-          LedOff(LCD_RED);
-          LedOn(LCD_GREEN);
-          LedOff(LCD_BLUE);
-          break;
-          
-        case 5: /* yellow */
-          LedOn(LCD_RED);
-          LedOn(LCD_GREEN);
-          LedOff(LCD_BLUE);
-          break;
-          
-        case 6: /* red */
-          LedOn(LCD_RED);
-          LedOff(LCD_GREEN);
-          LedOff(LCD_BLUE);
-          break;
-          
-        default: /* off */
-          LedOff(LCD_RED);
-          LedOff(LCD_GREEN);
-          LedOff(LCD_BLUE);
-          break;
-          
-      } /* end switch */
+      bYellowBlink = FALSE;
+      LedOff(YELLOW);
     }
     else
     {
-      u8BinaryCounter++;
+      bYellowBlink = TRUE;
+      LedBlink(YELLOW, LED_1HZ);
     }
-    
-    LedNumberType eLedNumber = RED;
-    for(u8 i = 0; i < COUNTER_BITS; i++)
-    {
-      if(u8BinaryCounter & (1 << i))
-      {
-        LedOn(eLedNumber);
-      }
-      else
-      {
-        LedOff(eLedNumber);
-      }
-      eLedNumber--;
-    }
-    
+  }
+  
+  if( IsButtonHeld(BUTTON2, 2000) )
+  {
+    LedOn(CYAN);
+  }
+  else
+  {
+    LedOff(CYAN);
   }
   
 } /* end UserApp1SM_Idle() */

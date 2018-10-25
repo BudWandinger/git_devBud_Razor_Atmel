@@ -97,10 +97,10 @@ void UserApp1Initialize(void)
   LedOff(ORANGE);
   LedOff(RED);
   
-  /* Initialize back light to WHITE) */
-  LedOn(LCD_RED);
-  LedOn(LCD_GREEN);
-  LedOn(LCD_BLUE);
+  /* Initialize back light to start with full RED and set other LEDs to PWM mode) */
+  LedPWM(LCD_RED, LED_PWM_100);
+  LedPWM(LCD_GREEN, LED_PWM_0);
+  LedPWM(LCD_BLUE, LED_PWM_0);
         
   /* If good initialization, set state to Idle */
   if( 1 )
@@ -150,99 +150,67 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-  static u16 u16BlinkCounter = 0;
-  static u8 u8BinaryCounter = 0;
-  static u8 u8ColorIndex = 0;
+  static LedNumberType aeCurrentLed[] = {LCD_GREEN, LCD_RED, LCD_BLUE, LCD_GREEN, LCD_RED, LCD_BLUE};
+  static bool abLedRateIncreasing[]   = {TRUE,      FALSE,   TRUE,     FALSE,     TRUE,    FALSE};
   
-  u16BlinkCounter++;
-  if(u16BlinkCounter == COUNTER_PERIOD_MS)
+  static u8 u8CurrentLedIndex  = 0;
+  static u8 u8LedCurrentLevel  = 0;
+  static u8 u8DutyCycleCounter = 0;
+  static u16 u16Counter = COLOR_CYCLE_TIME;
+  static bool bCyclingOn = TRUE;
+  
+  /* Advance the cycle only if bCyclingOn */
+  if(bCyclingOn)
   {
-    u16BlinkCounter = 0;
+    u16Counter--;
+  }
+  
+  if(u16Counter == 0)
+  {
+    u16Counter = COLOR_CYCLE_TIME;
     
-    if(u8BinaryCounter == (u16)(1<<COUNTER_BITS))
+    /* Update the current level based on which way it's headed */
+    if(abLedRateIncreasing[u8CurrentLedIndex])
     {
-      u8BinaryCounter = 0;
-      
-      if(u8ColorIndex == 6)
-      {
-        u8ColorIndex = 0;
-      }
-      else
-      {
-        u8ColorIndex++;
-      }
-      
-      switch(u8ColorIndex)
-      {
-        case 0: /* white */
-          LedOn(LCD_RED);
-          LedOn(LCD_GREEN);
-          LedOn(LCD_BLUE);
-          break;
-        
-        case 1: /* purple*/
-          LedOn(LCD_RED);
-          LedOff(LCD_GREEN);
-          LedOn(LCD_BLUE);
-          break;
-          
-        case 2: /* blue */
-          LedOff(LCD_RED);
-          LedOff(LCD_GREEN);
-          LedOn(LCD_BLUE);
-          break;
-          
-        case 3: /* cyan */
-          LedOff(LCD_RED);
-          LedOn(LCD_GREEN);
-          LedOn(LCD_BLUE);
-          break;
-          
-        case 4: /* green */
-          LedOff(LCD_RED);
-          LedOn(LCD_GREEN);
-          LedOff(LCD_BLUE);
-          break;
-          
-        case 5: /* yellow */
-          LedOn(LCD_RED);
-          LedOn(LCD_GREEN);
-          LedOff(LCD_BLUE);
-          break;
-          
-        case 6: /* red */
-          LedOn(LCD_RED);
-          LedOff(LCD_GREEN);
-          LedOff(LCD_BLUE);
-          break;
-          
-        default: /* off */
-          LedOff(LCD_RED);
-          LedOff(LCD_GREEN);
-          LedOff(LCD_BLUE);
-          break;
-          
-      } /* end switch */
+      u8LedCurrentLevel++;
     }
     else
     {
-      u8BinaryCounter++;
+    u8LedCurrentLevel--;
     }
     
-    LedNumberType eLedNumber = RED;
-    for(u8 i = 0; i < COUNTER_BITS; i++)
+    /* Change direction once we're at the end */
+    u8DutyCycleCounter++;
+    if(u8DutyCycleCounter == 20)
     {
-      if(u8BinaryCounter & (1 << i))
+      u8DutyCycleCounter = 0;
+      
+      /* Watch for the indexing variable to reset */
+      u8CurrentLedIndex++;
+      if(u8CurrentLedIndex == sizeof(aeCurrentLed))
       {
-        LedOn(eLedNumber);
+        u8CurrentLedIndex = 0;
       }
-      else
+    
+      /* Set the current level based on what direction we're now going */
+      u8LedCurrentLevel = 20;
+      if(abLedRateIncreasing[u8CurrentLedIndex])
       {
-        LedOff(eLedNumber);
+        u8LedCurrentLevel = 0;
       }
-      eLedNumber--;
     }
     
+    /* Update the value to the current LED */  
+    
+    LedPWM( (LedNumberType)aeCurrentLed[u8CurrentLedIndex], (LedRateType)u8LedCurrentLevel);
+    
+  }
+  
+  /* Toggle cycling on and off */
+  if( WasButtonPressed(BUTTON0) )
+  {
+    ButtonAcknowledge(BUTTON0);
+    bCyclingOn = (bool)!bCyclingOn;
   }
   
 } /* end UserApp1SM_Idle() */

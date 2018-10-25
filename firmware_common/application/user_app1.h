@@ -28,13 +28,7 @@ Type Definitions
 /**********************************************************************************************************************
 Constants / Definitions
 **********************************************************************************************************************/
-#define BIT_1_MASK (u8)0x01
-#define BIT_2_MASK (u8)0x02
-#define BIT_3_MASK (u8)0x04
-#define BIT_4_MASK (u8)0x08
-
-#define COUNTER_BITS (u8)4
-#define COUNTER_PERIOD_MS (u32)200
+#define COLOR_CYCLE_TIME    (u16)20   /* time to hold each color */
 
 /**********************************************************************************************************************
 Function Declarations

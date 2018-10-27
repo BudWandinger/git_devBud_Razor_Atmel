@@ -146,6 +146,8 @@ State Machine Function Definitions
 static void UserApp1SM_Idle(void)
 {
   static bool bYellowBlink = FALSE;
+  static LedRateType aeBlinkRate[] = {LED_1HZ, LED_2HZ, LED_4HZ, LED_8HZ};
+  static u8 u8BlinkRateIndex = 0;
   
   /* if button 0 is pressed, turn on WHITE LED */
   if( IsButtonPressed(BUTTON0) )
@@ -162,6 +164,8 @@ static void UserApp1SM_Idle(void)
   {
     ButtonAcknowledge(BUTTON1);
     
+    LedToggle(PURPLE);
+    
     if(bYellowBlink)
     {
       bYellowBlink = FALSE;
@@ -170,7 +174,7 @@ static void UserApp1SM_Idle(void)
     else
     {
       bYellowBlink = TRUE;
-      LedBlink(YELLOW, LED_1HZ);
+      LedBlink(YELLOW, aeBlinkRate[u8BlinkRateIndex]);
     }
   }
   
@@ -181,6 +185,27 @@ static void UserApp1SM_Idle(void)
   else
   {
     LedOff(CYAN);
+  }
+  
+  if( WasButtonPressed(BUTTON2) )
+  {
+    ButtonAcknowledge(BUTTON2);
+    
+    LedToggle(BLUE);
+    
+    if(bYellowBlink)
+    {
+      if(u8BlinkRateIndex == 3)
+      {
+        u8BlinkRateIndex = 0;
+      }
+      else
+      {
+        u8BlinkRateIndex++;
+      }
+      
+      LedBlink(YELLOW, aeBlinkRate[u8BlinkRateIndex]);
+    }
   }
   
 } /* end UserApp1SM_Idle() */

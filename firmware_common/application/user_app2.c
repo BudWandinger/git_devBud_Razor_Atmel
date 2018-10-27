@@ -122,6 +122,15 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp2SM_Idle(void)
 {
+    if( WasButtonPressed(BUTTON2) )
+    {
+      if( WasButtonPressed(BUTTON3) )
+      {
+        LedOn(GREEN);
+      }
+    }
+    ButtonAcknowledge(BUTTON2);
+    ButtonAcknowledge(BUTTON3);
     
 } /* end UserApp2SM_Idle() */
      

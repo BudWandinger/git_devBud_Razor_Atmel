@@ -52,6 +52,8 @@ extern volatile u32 G_u32ApplicationFlags;             /* From main.c */
 extern volatile u32 G_u32SystemTime1ms;                /* From board-specific source file */
 extern volatile u32 G_u32SystemTime1s;                 /* From board-specific source file */
 
+extern u8 G_au8DebugScanfBuffer[];  /* From debug.c */
+extern u8 G_u8DebugScanfCharCount;  /* From debug.c */
 
 /***********************************************************************************************************************
 Global variable definitions with scope limited to this local application.
@@ -60,6 +62,8 @@ Variable names shall start with "UserApp1_" and be declared as static.
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 //static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
 
+/* Char buffer */
+static u8 UserApp1_au8UserInputBuffer[U16_USER_INPUT_BUFFER_SIZE];
 
 /**********************************************************************************************************************
 Function Definitions
@@ -87,10 +91,11 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
-  LedOff(RED);
-  LedOff(GREEN);
-  
-  LedBlink(CYAN, LED_8HZ);
+  /* initilize au8UserInputBuffer */
+  for(u16 i = 0; i < U16_USER_INPUT_BUFFER_SIZE; i++)
+  {
+    UserApp1_au8UserInputBuffer[i] = 0;
+  }
   
   /* If good initialization, set state to Idle */
   if( 1 )
@@ -140,23 +145,43 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-  static u8 u8timeCounter = 0;
-  LedToggle(RED);
-  /* enter loop every 100ms */
-  if(u8timeCounter == 100)
+  static u8 u8NumCharsMessage[] = "\n\rCharacters in buffer: ";
+  static u8 au8BufferMessage[] = "\n\rBuffer contents:\n\r";
+  static u8 au8EmptyMessage[] = "\n\rBUFFER EMPTY!\n\r";
+  
+  u8 u8CharCount;
+  
+  if(WasButtonPressed(BUTTON1))
   {
-    /* reset timer */
-    u8timeCounter = 0;
+    ButtonAcknowledge(BUTTON1);
     
-    LedToggle(GREEN);
+    /* read the buffer and print the contents if buffer is NOT empty*/
+    u8CharCount = DebugScanf(UserApp1_au8UserInputBuffer);
+    if(u8CharCount > 0)
+    {
+      UserApp1_au8UserInputBuffer[u8CharCount] = '\0';
+      DebugPrintf(au8BufferMessage);
+      DebugPrintf(UserApp1_au8UserInputBuffer);
+      DebugLineFeed();
+    }
+    else
+    {
+      DebugPrintf(au8EmptyMessage);
+      DebugLineFeed();
+    }
     
-    for(int i = 0; i < 3000000; i++);
   }
-  else
+  
+  /* Print message with number of characters in scanf buffer */
+  if(WasButtonPressed(BUTTON0))
   {
-    u8timeCounter++;
-  }
+    ButtonAcknowledge(BUTTON0);
     
+    DebugPrintf(u8NumCharsMessage);
+    DebugPrintNumber(G_u8DebugScanfCharCount);
+    DebugLineFeed();
+  }
+  
 } /* end UserApp1SM_Idle() */
     
 

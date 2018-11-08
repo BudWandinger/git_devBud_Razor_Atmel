@@ -26,7 +26,6 @@ Global variable definitions with scope limited to this local application.
 Variable names shall start with "Main_" and be declared as static.
 ***********************************************************************************************************************/
 
-
 /***********************************************************************************************************************
 Main Program
 Main has two sections:

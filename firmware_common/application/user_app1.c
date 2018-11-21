@@ -42,7 +42,7 @@ All Global variable names shall start with "G_UserApp1"
 ***********************************************************************************************************************/
 /* New variables */
 volatile u32 G_u32UserApp1Flags;                       /* Global state flags */
-
+LedNumberType G_LedPattern[100];
 
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Existing variables (defined in other files -- should all contain the "extern" keyword) */
@@ -87,7 +87,22 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
-        
+  // initialize all LEDs to off
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOff(RED);
+  
+  // choose a random sequence for the led pattern
+  for(int i = 0; i < 100; i++)
+  {
+    G_LedPattern[i] = (rand() % 4) * 2;
+  }
+  
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -136,7 +151,26 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-
+    static u16 u16Timer = 0;
+    static u16 u16PatternIndex = 0;
+    
+    u16Timer++;
+    if(u16Timer == 1)
+    {
+      // reset all LEDs to off
+      LedOff(WHITE);
+      LedOff(PURPLE);
+      LedOff(BLUE);
+      LedOff(CYAN);
+      LedOff(GREEN);
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+      
+      LedOn(G_LedPattern[u16PatternIndex]);
+      u16PatternIndex++;
+    }
+    elseif(u16Timer == 501)
 } /* end UserApp1SM_Idle() */
     
 

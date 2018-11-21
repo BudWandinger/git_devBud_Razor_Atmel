@@ -87,7 +87,9 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
-        
+  PWMAudioSetFrequency(BUZZER1, 500);
+  PWMAudioSetFrequency(BUZZER2, 250);
+  
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -136,7 +138,44 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-
+  // play a D+G
+  if(IsButtonPressed(BUTTON0))
+  {
+    PWMAudioSetFrequency(BUZZER1, 587);
+    PWMAudioSetFrequency(BUZZER2, 784);
+    PWMAudioOn(BUZZER1);
+    PWMAudioOn(BUZZER2);
+  }
+  // play F+Bflat
+  else if(IsButtonPressed(BUTTON1))
+  {
+    PWMAudioSetFrequency(BUZZER1, 698);
+    PWMAudioSetFrequency(BUZZER2, 932);
+    PWMAudioOn(BUZZER1);
+    PWMAudioOn(BUZZER2);
+  }
+  // play G+C
+  else if(IsButtonPressed(BUTTON2))
+  {
+    PWMAudioSetFrequency(BUZZER1, 784);
+    PWMAudioSetFrequency(BUZZER2, 1047);
+    PWMAudioOn(BUZZER1);
+    PWMAudioOn(BUZZER2);
+  }
+  // play Gsharp+Csharp
+  else if(IsButtonPressed(BUTTON3))
+  {
+    PWMAudioSetFrequency(BUZZER1, 830);
+    PWMAudioSetFrequency(BUZZER2, 1109);
+    PWMAudioOn(BUZZER1);
+    PWMAudioOn(BUZZER2);
+  }
+  else
+  {
+    PWMAudioOff(BUZZER1);
+    PWMAudioOff(BUZZER2);
+  }
+  
 } /* end UserApp1SM_Idle() */
     
 

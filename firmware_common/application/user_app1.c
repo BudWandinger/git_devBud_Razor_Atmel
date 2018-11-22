@@ -100,7 +100,7 @@ void UserApp1Initialize(void)
   // choose a random sequence for the led pattern
   for(int i = 0; i < 100; i++)
   {
-    G_LedPattern[i] = (rand() % 4) * 2;
+    G_LedPattern[i] = ( (rand() % 4) * 2 ) - 1;
   }
   
   /* If good initialization, set state to Idle */
@@ -152,25 +152,252 @@ State Machine Function Definitions
 static void UserApp1SM_Idle(void)
 {
     static u16 u16Timer = 0;
-    static u16 u16PatternIndex = 0;
+    static u16 u16PatternIndex = 0; // keeps track of which index the LED pattern is at
+    static u16 u16UserInputIndex = 0; // keeps track of the index of the led pattern that the user is at
+    static u16 u16Level = 0; // the number of colors in the pattern on certain loop
+    static GameState currentState = COMPUTER_PLAY;
     
     u16Timer++;
-    if(u16Timer == 1)
+    
+    // if state == COMPUTER_PLAY, the computer will pay the LED pattern
+    // up to the current level
+    if(currentState == COMPUTER_PLAY)
     {
-      // reset all LEDs to off
-      LedOff(WHITE);
-      LedOff(PURPLE);
-      LedOff(BLUE);
-      LedOff(CYAN);
-      LedOff(GREEN);
-      LedOff(YELLOW);
-      LedOff(ORANGE);
-      LedOff(RED);
+      if(u16Timer == 1)
+      {
+        // reset all LEDs to off
+        LedOff(WHITE);
+        LedOff(PURPLE);
+        LedOff(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
       
-      LedOn(G_LedPattern[u16PatternIndex]);
-      u16PatternIndex++;
+        LedOn(G_LedPattern[u16PatternIndex]);
+        u16PatternIndex++;
+        
+        if(u16PatternIndex > u16Level)
+        {
+          currentState = USER_PLAY;
+          u16Timer = 0;
+        }
+      }
+      else if(u16Timer == 501)
+      {
+        // turn off all LEDs
+        LedOff(WHITE);
+        LedOff(PURPLE);
+        LedOff(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+      }
+      else if(u16Timer == 801)
+      {
+        u16Timer = 0;
+      }
     }
-    elseif(u16Timer == 501)
+    
+    if(currentState == USER_PLAY)
+    {
+      if(u16Timer == 501)
+      {
+        // turn off all LEDs
+        LedOff(WHITE);
+        LedOff(PURPLE);
+        LedOff(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+      }
+      if(u16Timer > 501)
+      {
+        // check for button 0
+        if(WasButtonPressed(BUTTON0))
+        {
+          ButtonAcknowledge(BUTTON0);
+          // if the user entered the correct pattern item
+          if(G_LedPattern[u16UserInputIndex] == 1)
+          {
+            u16UserInputIndex++;
+            if(u16UserInputIndex > u16Level)
+            {
+              currentState = USER_SUCCESS;
+              u16Timer = 0;
+            }
+          }
+          // if the user entered the incorrect pattern item
+          else
+          {
+            currentState = USER_FAIL;
+            u16Timer = 0;
+          }
+        }
+        
+        // check for button 1
+        else if(WasButtonPressed(BUTTON1))
+        {
+          ButtonAcknowledge(BUTTON1);
+          if(G_LedPattern[u16UserInputIndex] == 3)
+          {
+            u16UserInputIndex++;
+            if(u16UserInputIndex > u16Level)
+            {
+              currentState = USER_SUCCESS;
+              u16Timer = 0;
+            }
+          }
+          // if the user entered the incorrect pattern item
+          else
+          {
+            currentState = USER_FAIL;
+            u16Timer = 0;
+          }
+        }
+        
+        // check for button 2
+        else if(WasButtonPressed(BUTTON2))
+        {
+          ButtonAcknowledge(BUTTON2);
+          if(G_LedPattern[u16UserInputIndex] == 5)
+          {
+            u16UserInputIndex++;
+            if(u16UserInputIndex > u16Level)
+            {
+              currentState = USER_SUCCESS;
+              u16Timer = 0;
+            }
+          }
+          // if the user entered the incorrect pattern item
+          else
+          {
+            currentState = USER_FAIL;
+            u16Timer = 0;
+          }
+        }
+        
+        // check for button 3
+        else if(WasButtonPressed(BUTTON3))
+        {
+          ButtonAcknowledge(BUTTON3);
+          if(G_LedPattern[u16UserInputIndex] == 7)
+          {
+            u16UserInputIndex++;
+            if(u16UserInputIndex > u16Level)
+            {
+              currentState = USER_SUCCESS;
+              u16Timer = 0;
+            }
+          }
+          // if the user entered the incorrect pattern item
+          else
+          {
+            currentState = USER_FAIL;
+            u16Timer = 0;
+          }
+          
+        }
+        
+        // run PURPLE LED in accordance with BUTTON0
+        if(IsButtonPressed(BUTTON0))
+        {
+          LedOn(PURPLE);
+        }
+        else
+        {
+          LedOff(PURPLE);
+        }
+        
+        // run CYAN LED in accordance with BUTTON1
+        if(IsButtonPressed(BUTTON1))
+        {
+          LedOn(CYAN);
+        }
+        else
+        {
+          LedOff(CYAN);
+        }
+        
+        // run YELLOW LED in accordance with BUTTON2
+        if(IsButtonPressed(BUTTON2))
+        {
+          LedOn(YELLOW);
+        }
+        else
+        {
+          LedOff(YELLOW);
+        }
+        
+        // run RED LED in accordance with BUTTON3
+        if(IsButtonPressed(BUTTON3))
+        {
+          LedOn(RED);
+        }
+        else
+        {
+          LedOff(RED);
+        }
+        
+      }
+      
+      if(currentState == USER_FAIL)
+      {
+        if(u16Timer == 0)
+        {
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOn(ORANGE);
+          LedOn(RED);
+        }
+        u16Timer++;
+        if(u16Timer == 501)
+        {
+          LedOff(WHITE);
+          LedOff(PURPLE);
+          LedOff(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+        }
+        
+        if(u16Timer == 801)
+        {
+          u16Level++;
+          currentState = COMPUTER_PLAY;
+        }
+      }
+      
+      if(currentState == USER_SUCCESS)
+      {
+        if(u16Timer == 0)
+        {
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOn(ORANGE);
+          LedOn(RED);
+        }
+        
+        while(1);
+
+      }
+    }
+    
 } /* end UserApp1SM_Idle() */
     
 

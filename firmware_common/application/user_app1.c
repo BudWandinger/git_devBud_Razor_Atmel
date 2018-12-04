@@ -59,7 +59,7 @@ Variable names shall start with "UserApp1_" and be declared as static.
 ***********************************************************************************************************************/
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 //static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
-
+u32 au32LightSounds[] = {200, 400, 600, 800, 1000, 1200, 1400, 1600};
 
 /**********************************************************************************************************************
 Function Definitions
@@ -100,7 +100,7 @@ void UserApp1Initialize(void)
   // choose a random sequence for the led pattern
   for(int i = 0; i < 100; i++)
   {
-    G_LedPattern[i] = ( (rand() % 4) * 2 ) - 1;
+    G_LedPattern[i] = ( (rand() % 4) * 2) + 1;
   }
   
   /* If good initialization, set state to Idle */
@@ -135,7 +135,7 @@ void UserApp1RunActiveState(void)
 {
   UserApp1_StateMachine();
 
-} /* end UserApp1RunActiveState */
+ } /* end UserApp1RunActiveState */
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/
@@ -156,6 +156,7 @@ static void UserApp1SM_Idle(void)
     static u16 u16UserInputIndex = 0; // keeps track of the index of the led pattern that the user is at
     static u16 u16Level = 0; // the number of colors in the pattern on certain loop
     static GameState currentState = COMPUTER_PLAY;
+    static u32 u32SoundToPlay;
     
     u16Timer++;
     
@@ -174,14 +175,24 @@ static void UserApp1SM_Idle(void)
         LedOff(YELLOW);
         LedOff(ORANGE);
         LedOff(RED);
+        
+        // reset buzzers to off
+        PWMAudioOff(BUZZER1);
+        PWMAudioOff(BUZZER2);
       
         LedOn(G_LedPattern[u16PatternIndex]);
+        u32SoundToPlay = au32LightSounds[G_LedPattern[u16PatternIndex]];
+        PWMAudioSetFrequency(BUZZER1, u32SoundToPlay);
+        PWMAudioSetFrequency(BUZZER2, u32SoundToPlay);
+        PWMAudioOn(BUZZER1);
+        PWMAudioOn(BUZZER2);
         u16PatternIndex++;
         
         if(u16PatternIndex > u16Level)
         {
           currentState = USER_PLAY;
           u16Timer = 0;
+          u16PatternIndex = 0;
         }
       }
       else if(u16Timer == 501)
@@ -195,6 +206,10 @@ static void UserApp1SM_Idle(void)
         LedOff(YELLOW);
         LedOff(ORANGE);
         LedOff(RED);
+        
+         // reset buzzers to off
+        PWMAudioOff(BUZZER1);
+        PWMAudioOff(BUZZER2);
       }
       else if(u16Timer == 801)
       {
@@ -215,7 +230,18 @@ static void UserApp1SM_Idle(void)
         LedOff(YELLOW);
         LedOff(ORANGE);
         LedOff(RED);
+        
+        // reset buzzers to off
+        PWMAudioOff(BUZZER1);
+        PWMAudioOff(BUZZER2);
       }
+      
+      // incase user input hasn't happened in a long long long time
+      if(u16Timer == 65535)
+      {
+        u16Timer = 502;
+      }
+        
       if(u16Timer > 501)
       {
         // check for button 0
@@ -230,6 +256,7 @@ static void UserApp1SM_Idle(void)
             {
               currentState = USER_SUCCESS;
               u16Timer = 0;
+              u16UserInputIndex = 0;
             }
           }
           // if the user entered the incorrect pattern item
@@ -251,6 +278,7 @@ static void UserApp1SM_Idle(void)
             {
               currentState = USER_SUCCESS;
               u16Timer = 0;
+              u16UserInputIndex = 0;
             }
           }
           // if the user entered the incorrect pattern item
@@ -272,6 +300,7 @@ static void UserApp1SM_Idle(void)
             {
               currentState = USER_SUCCESS;
               u16Timer = 0;
+              u16UserInputIndex = 0;
             }
           }
           // if the user entered the incorrect pattern item
@@ -293,6 +322,7 @@ static void UserApp1SM_Idle(void)
             {
               currentState = USER_SUCCESS;
               u16Timer = 0;
+              u16UserInputIndex = 0;
             }
           }
           // if the user entered the incorrect pattern item
@@ -304,10 +334,12 @@ static void UserApp1SM_Idle(void)
           
         }
         
+        u32SoundToPlay = 0;
         // run PURPLE LED in accordance with BUTTON0
         if(IsButtonPressed(BUTTON0))
         {
           LedOn(PURPLE);
+          u32SoundToPlay = au32LightSounds[PURPLE_SOUND];
         }
         else
         {
@@ -318,6 +350,7 @@ static void UserApp1SM_Idle(void)
         if(IsButtonPressed(BUTTON1))
         {
           LedOn(CYAN);
+          u32SoundToPlay = au32LightSounds[CYAN_SOUND];
         }
         else
         {
@@ -328,6 +361,7 @@ static void UserApp1SM_Idle(void)
         if(IsButtonPressed(BUTTON2))
         {
           LedOn(YELLOW);
+          u32SoundToPlay = au32LightSounds[YELLOW_SOUND];
         }
         else
         {
@@ -338,65 +372,139 @@ static void UserApp1SM_Idle(void)
         if(IsButtonPressed(BUTTON3))
         {
           LedOn(RED);
+          u32SoundToPlay = au32LightSounds[RED_SOUND];
         }
         else
         {
           LedOff(RED);
         }
         
-      }
-      
-      if(currentState == USER_FAIL)
-      {
-        if(u16Timer == 0)
+        if(u32SoundToPlay == 0)
         {
-          LedOn(WHITE);
-          LedOn(PURPLE);
-          LedOn(BLUE);
-          LedOn(CYAN);
-          LedOn(GREEN);
-          LedOn(YELLOW);
-          LedOn(ORANGE);
-          LedOn(RED);
+          PWMAudioOff(BUZZER1);
+          PWMAudioOff(BUZZER2);
         }
-        u16Timer++;
-        if(u16Timer == 501)
+        else
         {
-          LedOff(WHITE);
-          LedOff(PURPLE);
-          LedOff(BLUE);
-          LedOff(CYAN);
-          LedOff(GREEN);
-          LedOff(YELLOW);
-          LedOff(ORANGE);
-          LedOff(RED);
+          PWMAudioSetFrequency(BUZZER1, u32SoundToPlay);
+          PWMAudioSetFrequency(BUZZER2, u32SoundToPlay);
+          PWMAudioOn(BUZZER1);
+          PWMAudioOn(BUZZER2);
         }
-        
-        if(u16Timer == 801)
-        {
-          u16Level++;
-          currentState = COMPUTER_PLAY;
-        }
-      }
-      
-      if(currentState == USER_SUCCESS)
-      {
-        if(u16Timer == 0)
-        {
-          LedOn(WHITE);
-          LedOn(PURPLE);
-          LedOn(BLUE);
-          LedOn(CYAN);
-          LedOn(GREEN);
-          LedOn(YELLOW);
-          LedOn(ORANGE);
-          LedOn(RED);
-        }
-        
-        while(1);
-
       }
     }
+    
+    if(currentState == USER_FAIL)
+    {
+      // wait for user to release the button that just brought the program 
+      // to this state
+      if(IsButtonPressed(BUTTON0) || IsButtonPressed(BUTTON1) ||
+         IsButtonPressed(BUTTON2) || IsButtonPressed(BUTTON3))
+      {
+        u16Timer = 0;
+      }
+      
+      if(u16Timer == 1)
+      {
+        LedOff(WHITE);
+        LedOff(PURPLE);
+        LedOff(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+        
+        // reset buzzers to off
+        PWMAudioOff(BUZZER1);
+        PWMAudioOff(BUZZER2);
+      }
+
+      if(u16Timer > 1 && u16Timer < 2000)
+      {
+        PWMAudioSetFrequency(BUZZER1, (2000 - u16Timer) + 200);
+        PWMAudioSetFrequency(BUZZER2, (2000 - u16Timer) + 200);
+        PWMAudioOn(BUZZER1);
+        PWMAudioOn(BUZZER2);
+        
+        if(u16Timer % 250 == 0 )
+        {
+          LedToggle(WHITE);
+          LedToggle(PURPLE);
+          LedToggle(BLUE);
+          LedToggle(CYAN);
+          LedToggle(GREEN);
+          LedToggle(YELLOW);
+          LedToggle(ORANGE);
+          LedToggle(RED);
+        }
+      }
+      
+      if(u16Timer == 3001)
+      {
+        PWMAudioOff(BUZZER1);
+        PWMAudioOff(BUZZER2);
+        
+        LedOff(WHITE);
+        LedOff(PURPLE);
+        LedOff(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+      }
+      
+      if(u16Timer == 3501)
+      {
+        // choose a new random sequence for the led pattern
+        for(int i = 0; i < 100; i++)
+        {
+          G_LedPattern[i] = ( (rand() % 4) * 2) + 1;
+        }
+        
+        u16Timer = 0;
+        u16Level = 0;
+        u16PatternIndex = 0;
+        u16UserInputIndex = 0;
+        currentState = COMPUTER_PLAY;
+      }
+    }
+      
+    if(currentState == USER_SUCCESS)
+    {
+      // wait for user to release the button that just brought the program 
+      // to this state
+      if(IsButtonPressed(BUTTON0) || IsButtonPressed(BUTTON1) ||
+         IsButtonPressed(BUTTON2) || IsButtonPressed(BUTTON3))
+      {
+        u16Timer = 0;
+      }
+      else
+      {
+        LedOff(WHITE);
+        LedOff(PURPLE);
+        LedOff(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+        
+        // reset buzzers to off
+        PWMAudioOff(BUZZER1);
+        PWMAudioOff(BUZZER2);
+      }
+      
+      if(u16Timer == 501)
+      {
+        u16Timer = 0;
+        u16Level++;
+        currentState = COMPUTER_PLAY;
+      }
+        
+    }
+    
     
 } /* end UserApp1SM_Idle() */
     

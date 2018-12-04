@@ -24,6 +24,8 @@ Header file for user_app1.c
 Type Definitions
 **********************************************************************************************************************/
 typedef enum{COMPUTER_PLAY = 0, USER_PLAY, USER_FAIL, USER_SUCCESS} GameState;
+typedef enum{WHITE_SOUND = 0, PURPLE_SOUND, BLUE_SOUND, CYAN_SOUND,
+             GREEN_SOUND, YELLOW_SOUND, ORANGE_SOUND, RED_SOUND} LightSoundList;
 
 /**********************************************************************************************************************
 Constants / Definitions

@@ -42,7 +42,8 @@ All Global variable names shall start with "G_UserApp1"
 ***********************************************************************************************************************/
 /* New variables */
 volatile u32 G_u32UserApp1Flags;                       /* Global state flags */
-
+u16 G_au16CursorPosition[] = {0, 0};
+u8 G_u8CursorOn = 1;
 
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Existing variables (defined in other files -- should all contain the "extern" keyword) */
@@ -72,6 +73,7 @@ Function Definitions
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Protected functions                                                                                                */
 /*--------------------------------------------------------------------------------------------------------------------*/
+void ToggleCursor(void);
 
 /*--------------------------------------------------------------------------------------------------------------------
 Function: UserApp1Initialize
@@ -87,7 +89,27 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
-        
+  LcdClearScreen();
+  LCD_BACKLIGHT_ON();
+  
+  // set up game board
+/*  for(u16 i = 0; i < 64; i+=8)
+  {
+    for(u16 j = 0; j < 64; j+=8)
+    {
+      
+      for(u16 x = 0; x < 3; x++)
+      {
+        for(u16 y = 0; y < 3; y++)
+        {
+          PixelAddressType sTargetPixel = {j+y, i+x};
+          LcdSetPixel(&sTargetPixel);
+        }
+      }
+            
+    }
+  }*/
+  
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -127,6 +149,34 @@ void UserApp1RunActiveState(void)
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
+void ToggleCursor(void)
+{
+  for(u16 i = 0; i < 3; i++)
+  {
+    for(u16 j = 0; j < 3; j++)
+    {
+      PixelAddressType sTargetPixel = {G_au16CursorPosition[0]+j, G_au16CursorPosition[1]+i};
+      if(G_u8CursorOn == 1)
+      {
+        LcdClearPixel(&sTargetPixel);
+      }
+      else
+      {
+        LcdSetPixel(&sTargetPixel);
+      }
+    }
+  }
+  
+  if(G_u8CursorOn == 1)
+  {
+    G_u8CursorOn = 0;
+  }
+  else
+  {
+    G_u8CursorOn = 1;
+  }
+  
+}
 
 /**********************************************************************************************************************
 State Machine Function Definitions
@@ -136,7 +186,14 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-
+  static u16 u16Timer = 0;
+  
+  u16Timer++;
+  
+  if(u16Timer % 200 == 0)
+  {
+    ToggleCursor();
+  }
 } /* end UserApp1SM_Idle() */
     
 
